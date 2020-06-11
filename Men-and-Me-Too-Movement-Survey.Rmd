@@ -1,0 +1,147 @@
+---
+title: "Men-and-Me-Too-Movement-Survey"
+author: "Mai Le"
+date: "5/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(dplyr) #grouping and manipulating data
+library(ggplot2) #data visualizations
+library(tidyr) #cleaning data
+library(RColorBrewer) #color palettes
+```
+
+```{r, message=FALSE, warning=FALSE}
+response <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/masculinity-survey/raw-responses.csv",
+                     header=TRUE, stringsAsFactors = FALSE)
+```
+
+##2.1 Reproduct figures and charts in the article with separate analysis for Straight and Gay/Bixexual men
+
+###2.1.1 Does society put unhealthy pressure on men?
+```{r, message=FALSE, warning=FALSE}
+# Select only Straight and Gay/Bisexual respondents
+selected <- c("Straight", "Gay/Bisexual")
+orientation2 <- response[response$orientation %in% selected,]
+
+# Graph 1. stacked bar plot
+p1 = ggplot(orientation2) + 
+  geom_bar(aes(x=orientation, fill=q0005, label=paste0(q0005)), position = "fill") + 
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position =  "top") +
+  scale_y_continuous()
+
+p1 + labs(title ="Do you think that society puts pressure on men in a way that is unhealthy or bad for them?", x = "Sexual Orientation", y = "Response Composition") + scale_fill_brewer(palette ="Spectral")
+
+```
+
+###2.1.2 What do you worry about on a daily or near-daily basis?
+```{r,message=FALSE,warning=FALSE}
+# question 8 variables
+raw8 = orientation2 %>% select(starts_with('q0008'))
+
+# go to wide to long format
+str(long)
+str(raw8)
+1615*12 # right size
+
+# counts for each response 
+tab1 = long %>% group_by(value) %>% count
+#filter out "not selected" response, which is the most common
+tab1 = tab1 %>% filter(n < 10000)
+#convert q0026 into factor
+tab1$q0026 <- as.factor(tab1$q0026)
+p2.1.2 = ggplot(tab1, aes(x = reorder(value,n), y = 100*n/nrow(raw8)),position="fill") + 
+        geom_bar(stat = 'identity') + 
+        coord_flip()
+
+p2.1.2 +labs(title ="What do you worry about on a daily or near-daily basis?", y = "Response composition", x = "Responses")
+```
+
+###2.1.4 How often do you pay on a date? 
+```{r, message=FALSE, warning=FALSE}
+p4 = ggplot(orientation2) + 
+  geom_bar(aes(x=q0018, fill=orientation), position = "fill") +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position =  "top")
+
+p4 + labs(title ="How often do you try to be the one who pays on a date? ", x = "Response", y = "Response Composition") + scale_fill_brewer(palette ="Dark2")
+```
+
+
+
+## 2.2 Reproduct figures and charts in the article with separate analysis for White and Nonwhite men
+
+###2.2.1 Does society put unhealthy pressure on men?
+```{r, message=FALSE, warning=FALSE}
+p2.1 = ggplot(orientation2) + 
+  geom_bar(aes(x=race2, fill=q0005, label=paste0(q0005)), position = "fill") + 
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position =  "top")
+
+p2.1 + labs(title ="Do you think that society puts pressure on men in a way that is unhealthy or bad for them?", x = "Race", y = "Response Composition") + scale_fill_brewer(palette ="Set2")
+
+```
+
+###2.2.4 How often do you pay on a date? 
+```{r, message=FALSE, warning=FALSE}
+p2.4 = ggplot(orientation2) + 
+  geom_bar(aes(x=q0018, fill=race2), position = "fill") +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position =  "top")
+
+p2.4 + labs(title ="How often do you try to be the one who pays on a date? ", x = "Response", y = "Response composition") + scale_fill_brewer(palette ="Set3")
+```
+
+##2.3
+As a man, would you say you think about your behavior at work differently in the
+wake of #MeToo?
+```{r,message=FALSE,warning=FALSE}
+#Remove respondents NA responses
+noNA <- response %>% na.omit
+
+#stacked bar plot
+p2.3.1 = ggplot(noNA) + 
+  geom_bar(aes(x=q0024, fill=q0015), position = "fill") + 
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "top") 
+
+p2.3.1 + labs(title ="As a man, would you say you think about your behavior at work differently in the wake of #MeToo?", x = "Relationship Status", y = "Response Composition") + scale_fill_brewer(palette ="Dark2")
+```
+
+
+Do you typically feel as though you’re expected to make the first move in romantic
+relationships?
+```{r,warning=FALSE, message=FALSE}
+#stacked bar plot
+p2.3.2 = ggplot(noNA) + 
+  geom_bar(aes(x=q0024, fill=q0015), position = "fill") + 
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "top") 
+
+p2.3.2 + labs(title ="Do you typically feel as though you’re expected to make the first move in romantic relationships?", x = "Relationship Status", y = "Response Composition") + scale_fill_brewer(palette ="Set2")
+```
+
+How much have you heard about the #MeToo movement?
+```{r,warning=FALSE, message=FALSE}
+#stacked bar plot
+p2.3.2 = ggplot(noNA) + 
+  geom_bar(aes(x=q0029, fill=q0014), position = "fill") + 
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "top") 
+
+p2.3.2 + labs(title ="How much have you heard about the #MeToo movement?", x = "Education Level", y = "Response Composition") + scale_fill_brewer(palette ="Set1")
+```
